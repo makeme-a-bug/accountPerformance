@@ -7,7 +7,7 @@ from .creds import get_creds
 
 CREDS = get_creds()
 G_CLIENT = gspread.authorize(CREDS)
-MASTER_SHEET = "https://docs.google.com/spreadsheets/d/1JrzD_O3WJr5GC-WOPy6UEKEz14NusEZbLrqdE3rnd0w/edit#gid=0"
+MASTER_SHEET = "https://docs.google.com/spreadsheets/d/1y5mScQEQ-qolozrL0tkdHPtV3jM_2r3yKuVMRO7EqQg/edit#gid=0"
 
 
 

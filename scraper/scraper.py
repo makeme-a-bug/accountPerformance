@@ -87,14 +87,18 @@ class Scraper(webdriver.Remote):
             media_body = self.find_element(By.CLASS_NAME,"media-body")
             result["Date"] = media_body.find_element(By.TAG_NAME,"div").text
             result["Subject"] = media_body.find_element(By.TAG_NAME,"h3").text
-            iframe = self.find_element(By.CLASS_NAME,"starfleet-sanitized-iframe")
-            iframe = self.switch_to.frame(iframe) 
-            body = self.find_element(By.TAG_NAME, "body")
-            result["Performance Notification"] = body.text
-            asin = re.findall(r'ASIN: (\w+)',result["Performance Notification"])
-            if len(asin) > 0:
-                result["ASIN(s)"] = asin[0][:10]
-            
+            iframe = self.find_elements(By.CLASS_NAME,"starfleet-sanitized-iframe")
+            if iframe:
+                iframe = self.switch_to.frame(iframe[0]) 
+                body = self.find_element(By.TAG_NAME, "body")
+                result["Performance Notification"] = body.text
+                asin = re.findall(r'(?=[0-9_]*[A-Z])\b[A-Z0-9_]+\b',result["Performance Notification"])
+                if len(asin) > 0:
+                    asin = list(filter(lambda x : len(x)==10 and f"/{x}" not in result["Performance Notification"],asin))
+                    asin = list(set(asin))
+                    result["ASIN(s)"] = ",".join(asin)
+            if result['Date'] =="":
+                print(link)
             self.switch_to.window(current_window)
             
         return result
@@ -102,9 +106,7 @@ class Scraper(webdriver.Remote):
     def get_notification_page(self,url):
         url_open = False
         self.get(url)
-        time.sleep(3)
         self.implicitly_wait(20)        
-
         for i in range(3):
             try:
                 captcha = self.solve_captcha()
@@ -117,6 +119,7 @@ class Scraper(webdriver.Remote):
                 break
             except TimeoutException:
                 self.bring_to_front()
+                time.sleep(3)
                 self.get(url)
         self.implicitly_wait(120)
         return url_open
@@ -203,7 +206,7 @@ class Scraper(webdriver.Remote):
         False : if the profile is not logged in
         """
         time.sleep(10)
-        if "By continuing, you agree to Amazon's" not in self.page_source:
+        if "By continuing, you agree to Amazon's" not in self.page_source and "Keep me signed in" not in self.page_source:
             return True
         self.console.log(f"{self.profile_name}:Profile not logged in into Amazon account",style='red')
         return False

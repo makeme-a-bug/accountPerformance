@@ -48,33 +48,38 @@ class Manager:
         """
             Starts browser profile for given profile_id        
         """
-        try:
-            mla_url = (
-                f"http://127.0.0.1:{self.port}/api/v1/profile/start?automation=true&profileId=" + profile_id
-            )
-            resp = requests.get(mla_url)
-            json:Dict = resp.json()
-            if resp.status_code == 500:
-                self.console.log(f"profile with id:{profile_id} not found",style="red")
-                return
+        json:Dict = {}
+        for i in range(2):
+            try:
+                mla_url = (
+                    f"http://127.0.0.1:{self.port}/api/v1/profile/start?automation=true&profileId=" + profile_id
+                )
+                resp = requests.get(mla_url)
+                json = resp.json()
+                if resp.status_code == 500:
+                    self.console.log(f"profile with id:{profile_id} not found. trying again",style="red")
+                    time.sleep(5)
+                    continue
+                break
+                
+
+            except requests.exceptions.Timeout as e:
+                self.console.log(f"Request to get profile:{profile_id} timeout",style="red")
+
+            except requests.exceptions.ConnectionError as e:
+                self.console.log(f"Please make sure multilogin API is running. Failed to make request to the API.",style="red")
+
+            except requests.exceptions as e:
+                self.console.log("Request failed due to",style="red")
+                print(e)
+                
+            except Exception as e:
+                print(e)
             
-
-        except requests.exceptions.Timeout as e:
-            self.console.log(f"Request to get profile:{profile_id} timeout",style="red")
-            return
-
-        except requests.exceptions.ConnectionError as e:
-            self.console.log(f"Please make sure multilogin API is running. Failed to make request to the API.",style="red")
-            raise SystemExit()
-
-        except requests.exceptions as e:
-            self.console.log("Request failed due to",style="red")
-            print(e)
-            return
-        except Exception as e:
-            print(e)
-            return
-        
+            self.console.log("trying again",style="red")
+            time.sleep(5)
+            continue
+                
         return json.get('value',None)
 
     def gather_data(self):

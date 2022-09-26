@@ -83,6 +83,7 @@ class Scraper(webdriver.Remote):
             "ASIN(s)":"",
         }
         if self.get_notification_page(link):
+            self.implicitly_wait(20)
             current_window = self.current_window_handle
             media_body = self.find_element(By.CLASS_NAME,"media-body")
             result["Date"] = media_body.find_element(By.TAG_NAME,"div").text
@@ -100,7 +101,7 @@ class Scraper(webdriver.Remote):
             if result['Date'] =="":
                 print(link)
             self.switch_to.window(current_window)
-            
+        self.implicitly_wait(120)    
         return result
 
     def get_notification_page(self,url):
